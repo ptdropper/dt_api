@@ -3,7 +3,7 @@
 
 import logging
 
-from .exceptions import AuthorizationError, DependencyTrackApiError
+from exceptions import DependencyTrackApiError
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
