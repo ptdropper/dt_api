@@ -3,8 +3,12 @@ import argparse
 import dependencytrack
 
 # Magic number alert, this is the official API Key from our Dependency Track user interface
-# for the Lab-Rsmigielski machine: api_key = 'XrnGcCSFoCzhHFX7vWu0hD4IisDeFrQl'
-api_key = 'odt_OMOp64gY2VDYaAV65UKbsqeaRp40as33'  # for the rdapps.bbraunlab.com machine
+# for the instance on rdapps.bbraunlab.com use the Administrator Team and enable the following capabilities
+#    POLICY_MANAGEMENT
+#    POLICY_VIOLATION_ANALYSIS
+#    VIEW_POLICY_VIOLATION
+
+api_key = 'odt_mFmihpi8eKqFsrhj2xeIbkQQ0nMzD2h7'
 
 # user input is needed for the following
 # 1. the server name/ip address
@@ -53,4 +57,4 @@ for x in range(x):
         break
 
 dt.get_project_vdr(prod_uuid, args.product_name, args.product_version)
-# dt.get_product_policy_violations(prod_uuid, args.product_name, args.product_version)
+dt.get_product_policy_violations(prod_uuid, args.product_name, args.product_version)

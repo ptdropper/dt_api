@@ -3,8 +3,6 @@
 import io
 import logging
 
-import requests
-
 from exceptions import DependencyTrackApiError
 
 logger = logging.getLogger(__name__)
@@ -13,6 +11,11 @@ logger.setLevel(logging.DEBUG)
 
 class Projects:
     """Class dedicated to all "projects" related endpoints"""
+
+    def __init__(self):
+        self.session = None
+        self.paginated_param_payload = None
+        self.api = None
 
     def list_projects(self):
         """List all projects accessible to the authenticated user
@@ -62,7 +65,6 @@ class Projects:
         """
 
         response = self.session.get(self.api + f"/dependency/project/{uuid}", params=self.paginated_param_payload)
-        print(response.url)
         if response.status_code == 200:
             return response.json()
         else:
@@ -88,57 +90,50 @@ class Projects:
             raise DependencyTrackApiError(description, response)
 
     def get_project_vdr(self, uuid, name, version):
-        """Get vdr file of project.
+        """Get VDR file of project.
 
-        example command line method:
-        curl -H
-            'X-Api-Key: XrnGcCSFoCzhHFX7vWu0hD4IisDeFrQl'
-            -H 'Accept application/vnd.cyclonedx+xml'
-            'http://192.168.1.24:8081/api/v1/bom/cyclonedx/project/b9213f2b-c073-4b24-b03e-30ea4e65664f?variant=vdr'
         API Endpoint: GET /v1/bom/cyclonedx/project/{project_uuid}
 
         :param uuid: the ID of the project to be analysed
-        :type uuid: uuid string
+        :param name: the name of the Project for which a VDR is requested
+        :param version: the version of the Project for which a VDR is requested
         :return: the requested VDR data
         :rtype: a file
         :raises DependencyTrackApiError: if the REST call failed
         """
-        response = self.session.get(self.api + f"/bom/cyclonedx/project/{uuid}" + "?variant=vdr", \
+        response = self.session.get(self.api + f"/bom/cyclonedx/project/{uuid}" + "?variant=vdr",
                                     params=self.paginated_param_payload)
         with io.open((name + "_" + version + "_VDR.json"), "w", encoding='utf-8') as output_file_handle:
             print(response.text, file=output_file_handle)
 
-        if response.status_code == 200:
-            print("VDR response content", response.content)
-            return response.json()
-        else:
+        if response.status_code != 200:
             description = f"Error while getting project {uuid}"
             raise DependencyTrackApiError(description, response)
 
     def get_product_policy_violations(self, uuid, name, version):
         """
         Get the list of policy violations for a specific product at a named version.
+        REQUIRES the Administrator team has the following capabilities in the Dependency Track Team -> Permission
+            POLICY_MANAGEMENT
+            POLICY_VIOLATION_ANALYSIS
+            VIEW_POLICY_VIOLATION
+
         "/v1/violation/project/{uuid}"
         :param uuid: the ID of the project to be analysed
-        :type uuid: uuid string
-        :return: the requested policy violation VDR data
+        :param name: the name of the Project for which a VDR is requested
+        :param version: the version of the Project for which a VDR is requested
+        :return: the requested policy violation data
         :rtype: a file
         :raises DependencyTrackApiError: if the REST call failed
         """
-
-        """
-        response = self.session.get(self.api + f"/violation/project/{uuid}", params=self.paginated_param_payload)
-        """
-        response_API = requests.get(self.api + f"/violation/project/{uuid}")
-        if response_API.status_code == 200:
-            print("Violation response content for project ", {uuid}, response_API.content)
-
-        else:
+        response_API = self.session.get(self.api + f"/violation/project/{uuid}")
+        if response_API.status_code != 200:
             description = f"Error while getting project {uuid}"
             raise DependencyTrackApiError(description, response_API)
 
-        """
-        TODO 
+        import json
+
+        json_object = json.loads(response_API.text)
+        json_formatted_str = json.dumps(json_object, indent=2)
         with io.open((name + "_" + version + "_policy_violations.json"), "w", encoding='utf-8') as output_file_handle:
-            print(response.text, file=output_file_handle)
-        """
+            print(json_formatted_str, file=output_file_handle)
