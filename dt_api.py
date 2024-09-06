@@ -1,5 +1,6 @@
 import argparse
 import configparser
+import os
 
 import dependencytrack
 
@@ -17,12 +18,19 @@ def dt_api_read_config():
     :rtype: list()
     :raises DependencyTrackApiError: if the REST call failed
     """
-
+    path = 'config.ini'
+    isExist = os.path.isfile(path)
+    if (isExist == False):
+        print('Creating config.ini with default content, please edit the file to add values.')
+        f = open(path, "w")
+        f.write("[Dependency_Track_Server_Host]\n")
+        f.write("host_name = <replace with server hosting Dependency Track>\n")
+        f.write("api_key = <replace with the Administrator Team API Key value>\n")
+        f.close()
+        exit(1)
     # Create a ConfigParser object
     config = configparser.ConfigParser()
-
-    # Read the configuration file, allow for missing file and empty file TODO
-    config.read('config.ini')
+    config.read(path)
 
     # Access values from the configuration file
     host_name = config.get('Dependency_Track_Server_Host', 'host_name')
@@ -37,8 +45,8 @@ def dt_api_read_config():
 
 
 # user input is needed for the following
-# 1. the server name/ip address
-# 2. the project name
+# 1. the server name/ip address provided by config.ini
+# 2. the Dependency Track project name
 # 3. the project version
 
 config_data = dt_api_read_config()
