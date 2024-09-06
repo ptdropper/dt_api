@@ -6,6 +6,7 @@ import dependencytrack
 
 
 # Use the Dependency Track Administrator Team and enable the following capabilities
+
 #    POLICY_MANAGEMENT
 #    POLICY_VIOLATION_ANALYSIS
 #    VIEW_POLICY_VIOLATION
