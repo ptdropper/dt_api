@@ -1,30 +1,64 @@
 import argparse
+import configparser
 
 import dependencytrack
 
-# Magic number alert, this is the official API Key from our Dependency Track user interface
-# for the Lab-Rsmigielski machine: api_key = 'XrnGcCSFoCzhHFX7vWu0hD4IisDeFrQl'
-api_key = 'odt_OMOp64gY2VDYaAV65UKbsqeaRp40as33'  # for the rdapps.bbraunlab.com machine
+
+# Use the Dependency Track Administrator Team and enable the following capabilities
+#    POLICY_MANAGEMENT
+#    POLICY_VIOLATION_ANALYSIS
+#    VIEW_POLICY_VIOLATION
+
+
+def dt_api_read_config():
+    """Read configuration data from a file
+
+    :return: a list of configuration data
+    :rtype: list()
+    :raises DependencyTrackApiError: if the REST call failed
+    """
+
+    # Create a ConfigParser object
+    config = configparser.ConfigParser()
+
+    # Read the configuration file, allow for missing file and empty file TODO
+    config.read('config.ini')
+
+    # Access values from the configuration file
+    host_name = config.get('Dependency_Track_Server_Host', 'host_name')
+    api_key = config.get('Dependency_Track_Server_Host', 'api_key')
+
+    # Return a dictionary with the retrieved values
+    config_values = {
+        'host_name': host_name,
+        'api_key': api_key,
+    }
+    return config_values
+
 
 # user input is needed for the following
 # 1. the server name/ip address
 # 2. the project name
+# 3. the project version
 
-parser = argparse.ArgumentParser(description="<DepTrack IP address> and <product name>")
-parser.add_argument("user_url", type=str)
+config_data = dt_api_read_config()
+dt_api_host_name = config_data['host_name']
+dt_api_key = config_data['api_key']
+
+parser = argparse.ArgumentParser(description="<product name> <product version>")
 parser.add_argument("product_name", type=str)
 parser.add_argument("product_version", type=str)
 args = parser.parse_args()
-print(args.user_url)
+
 print(args.product_name)
 print(args.product_version)
 
 # Be certain that the following url does not end with a forward slash "/'
-url = "http://" + str(args.user_url) + ":8081"
+url = "http://" + str(dt_api_host_name) + ":8081"
 
 try:
     # creates the required connection to Dependency track
-    dt = dependencytrack.DependencyTrack(url, api_key)
+    dt = dependencytrack.DependencyTrack(url, dt_api_key)
 except:
     print("Cannot connect to server.")
     exit(-1)
@@ -53,4 +87,4 @@ for x in range(x):
         break
 
 dt.get_project_vdr(prod_uuid, args.product_name, args.product_version)
-# dt.get_product_policy_violations(prod_uuid, args.product_name, args.product_version)
+dt.get_product_policy_violations(prod_uuid, args.product_name, args.product_version)
